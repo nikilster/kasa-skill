@@ -2,7 +2,10 @@
 # Kasa device control script
 set -e
 
-CONFIG_DIR="${HOME}/.openclaw/integrations/kasa"
+# Resolve paths relative to this script
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BASE_DIR="$(dirname "$SCRIPT_DIR")"
+CONFIG_DIR="${BASE_DIR}/config"
 DEVICES_FILE="${CONFIG_DIR}/devices.json"
 
 # Ensure config dir exists
