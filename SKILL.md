@@ -47,7 +47,7 @@ pip3 install python-kasa
 
 ## Configuration
 
-Save known devices in `~/.clawdbot/kasa/devices.json`:
+Known devices are saved in `{baseDir}/config/devices.json` (auto-updated by `discover`):
 
 ```json
 {

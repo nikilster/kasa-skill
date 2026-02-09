@@ -2,7 +2,10 @@
 # Kasa device control script
 set -e
 
-CONFIG_DIR="${HOME}/.clawdbot/kasa"
+# Resolve paths relative to this script
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BASE_DIR="$(dirname "$SCRIPT_DIR")"
+CONFIG_DIR="${BASE_DIR}/config"
 DEVICES_FILE="${CONFIG_DIR}/devices.json"
 
 # Ensure config dir exists
@@ -13,13 +16,21 @@ if [ ! -f "$DEVICES_FILE" ]; then
     echo '{}' > "$DEVICES_FILE"
 fi
 
+# Activate venv if it exists (python-kasa may also be installed globally)
+if [ -f "${HOME}/.openclaw/venvs/kasa/bin/activate" ]; then
+    source "${HOME}/.openclaw/venvs/kasa/bin/activate"
+fi
+
+# Build a JSON array of args to preserve quoting through the heredoc
+ARGS_JSON=$(python3 -c "import json,sys; print(json.dumps(sys.argv[1:]))" "$@")
+
 python3 << EOF
 import asyncio
 import json
 import sys
 from pathlib import Path
 
-args = "$@".split()
+args = json.loads('$ARGS_JSON')
 
 if not args:
     print("Usage: kasa.sh discover | <device_name_or_ip> [on|off|toggle|status]")
@@ -54,25 +65,25 @@ async def discover():
     from kasa import Discover
     print("Discovering Kasa devices...")
     devices = await Discover.discover(timeout=10)
-    
+
     if not devices:
         print("No devices found. Try with credentials:")
         print("  kasa.sh discover --username EMAIL --password PASS")
         return
-    
+
     known = load_devices()
     for ip, dev in devices.items():
         await dev.update()
         print(f"  {dev.alias}: {dev.model} @ {ip} ({'ON' if dev.is_on else 'OFF'})")
         known[dev.alias] = ip
-    
+
     save_devices(known)
     print(f"\nSaved {len(known)} devices to {DEVICES_FILE}")
 
 async def control(ip, action):
     from kasa import Discover
     dev = await Discover.discover_single(ip, timeout=10)
-    
+
     if action == "on":
         await dev.turn_on()
         print(f"{dev.alias} turned ON")
@@ -93,7 +104,7 @@ async def control(ip, action):
 
 async def main():
     cmd = args[0]
-    
+
     if cmd == "discover":
         await discover()
     else:
@@ -101,7 +112,7 @@ async def main():
         if not ip:
             print(f"Device '{cmd}' not found. Run 'kasa.sh discover' first.")
             sys.exit(1)
-        
+
         action = args[1] if len(args) > 1 else "status"
         await control(ip, action)
 
