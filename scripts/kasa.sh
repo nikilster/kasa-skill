@@ -2,7 +2,7 @@
 # Kasa device control script
 set -e
 
-CONFIG_DIR="${HOME}/.clawdbot/kasa"
+CONFIG_DIR="${HOME}/.openclaw/integrations/kasa"
 DEVICES_FILE="${CONFIG_DIR}/devices.json"
 
 # Ensure config dir exists
@@ -11,6 +11,11 @@ mkdir -p "$CONFIG_DIR"
 # Create empty devices file if not exists
 if [ ! -f "$DEVICES_FILE" ]; then
     echo '{}' > "$DEVICES_FILE"
+fi
+
+# Activate venv if it exists (python-kasa may also be installed globally)
+if [ -f "${HOME}/.openclaw/venvs/kasa/bin/activate" ]; then
+    source "${HOME}/.openclaw/venvs/kasa/bin/activate"
 fi
 
 python3 << EOF

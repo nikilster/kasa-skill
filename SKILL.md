@@ -47,7 +47,7 @@ pip3 install python-kasa
 
 ## Configuration
 
-Save known devices in `~/.clawdbot/kasa/devices.json`:
+Save known devices in `~/.openclaw/integrations/kasa/devices.json`:
 
 ```json
 {
